@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-mongo-app
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: flask-mongo-app
+  template:
+    metadata:
+      labels:
+        app: flask-mongo-app
+    spec:
+      containers:
+      - name: flask-mongo-app
+        image: rosawang77/flask-mongo-app:v1.5-amd64
+        ports:
+        - containerPort: 5001
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5001
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-db
+  template:
+    metadata:
+      labels:
+        app: mongo-db
+    spec:
+      containers:
+      - name: mongo-db
+        image: rosawang77/mongo-db:v1.5-amd64
+        ports:
+        - containerPort: 27017
